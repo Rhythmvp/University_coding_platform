@@ -1,0 +1,331 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<!-- Admin Reports Section -->
+<section class="admin-reports-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title text-center mb-5">
+                    <h2 class="fw-bold">Assessment Reports</h2>
+                    <p class="text-muted">View detailed reports and student performance analytics</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="total-students">0</h4>
+                                <small>Total Students</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="avg-completion">0%</h4>
+                                <small>Avg Completion Rate</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-pie fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="avg-score">0%</h4>
+                                <small>Average Score</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="active-assessments">0</h4>
+                                <small>Active Assessments</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-play-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Performance -->
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Assessment Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Assessment</th>
+                                        <th>Type</th>
+                                        <th>Submissions</th>
+                                        <th>Avg Score</th>
+                                        <th>Completion Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assessment-performance">
+                                    <!-- Assessment performance will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Submissions -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Submissions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Assessment</th>
+                                        <th>Score</th>
+                                        <th>Time Taken</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-submissions">
+                                    <!-- Recent submissions will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Submission Detail Modal -->
+<div class="modal fade" id="submissionDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submission Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="submission-detail-content">
+                <!-- Submission details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadReports();
+});
+
+async function loadReports() {
+    try {
+        const [assessmentsResponse, submissionsResponse] = await Promise.all([
+            fetch('/api/admin/assessments'),
+            fetch('/api/admin/submissions')
+        ]);
+        
+        const assessments = await assessmentsResponse.json();
+        const submissions = await submissionsResponse.json();
+        
+        // Calculate statistics
+        const uniqueStudents = new Set(submissions.map(s => s.student._id)).size;
+        const completedSubmissions = submissions.filter(s => s.status === 'completed');
+        const avgCompletionRate = submissions.length > 0 ? (completedSubmissions.length / submissions.length) * 100 : 0;
+        const avgScore = completedSubmissions.length > 0 
+            ? Math.round((completedSubmissions.reduce((sum, s) => sum + (s.totalScore / s.maxScore), 0) / completedSubmissions.length) * 100)
+            : 0;
+        const activeAssessments = assessments.filter(a => a.isActive).length;
+        
+        // Update statistics cards
+        document.getElementById('total-students').textContent = uniqueStudents;
+        document.getElementById('avg-completion').textContent = Math.round(avgCompletionRate) + '%';
+        document.getElementById('avg-score').textContent = avgScore + '%';
+        document.getElementById('active-assessments').textContent = activeAssessments;
+        
+        // Load assessment performance
+        loadAssessmentPerformance(assessments, submissions);
+        
+        // Load recent submissions
+        loadRecentSubmissions(submissions);
+        
+    } catch (error) {
+        console.error('Error loading reports:', error);
+    }
+}
+
+function loadAssessmentPerformance(assessments, submissions) {
+    const container = document.getElementById('assessment-performance');
+    container.innerHTML = '';
+    
+    assessments.forEach(assessment => {
+        const assessmentSubmissions = submissions.filter(s => s.assessment._id === assessment._id);
+        const completedSubmissions = assessmentSubmissions.filter(s => s.status === 'completed');
+        
+        const avgScore = completedSubmissions.length > 0 
+            ? Math.round((completedSubmissions.reduce((sum, s) => sum + (s.totalScore / s.maxScore), 0) / completedSubmissions.length) * 100)
+            : 0;
+        const completionRate = assessmentSubmissions.length > 0 
+            ? (completedSubmissions.length / assessmentSubmissions.length) * 100 
+            : 0;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${assessment.title}</td>
+            <td><span class="badge bg-${assessment.type === 'mcq' ? 'primary' : assessment.type === 'coding' ? 'success' : 'warning'}">${assessment.type.toUpperCase()}</span></td>
+            <td>${assessmentSubmissions.length}</td>
+            <td>${avgScore}%</td>
+            <td>
+                <div class="progress mb-1">
+                    <div class="progress-bar" style="width: ${completionRate}%"></div>
+                </div>
+                <small>${Math.round(completionRate)}%</small>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewAssessmentStats('${assessment._id}')">
+                    <i class="fas fa-chart-bar"></i>
+                </button>
+            </td>
+        `;
+        container.appendChild(row);
+    });
+    
+    if (assessments.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No assessments available</td></tr>';
+    }
+}
+
+function loadRecentSubmissions(submissions) {
+    const container = document.getElementById('recent-submissions');
+    container.innerHTML = '';
+    
+    submissions.slice(0, 20).forEach(submission => {
+        const row = document.createElement('tr');
+        const scorePercentage = submission.maxScore > 0 ? Math.round((submission.totalScore / submission.maxScore) * 100) : 0;
+        
+        row.innerHTML = `
+            <td>${submission.student.username}</td>
+            <td>${submission.assessment.title}</td>
+            <td>
+                <span class="badge bg-${scorePercentage >= 80 ? 'success' : scorePercentage >= 60 ? 'warning' : 'danger'}">
+                    ${submission.totalScore}/${submission.maxScore} (${scorePercentage}%)
+                </span>
+            </td>
+            <td>${submission.timeTaken || 0} min</td>
+            <td><span class="badge bg-${submission.status === 'completed' ? 'success' : 'warning'}">${submission.status}</span></td>
+            <td>${new Date(submission.createdAt).toLocaleDateString()}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="viewSubmissionDetail('${submission._id}')">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </td>
+        `;
+        container.appendChild(row);
+    });
+    
+    if (submissions.length === 0) {
+        container.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No submissions yet</td></tr>';
+    }
+}
+
+function viewAssessmentStats(assessmentId) {
+    alert('View detailed statistics for assessment: ' + assessmentId);
+}
+
+function viewSubmissionDetail(submissionId) {
+    // This would load detailed submission information
+    const modal = new bootstrap.Modal(document.getElementById('submissionDetailModal'));
+    document.getElementById('submission-detail-content').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading submission details...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // In a real implementation, you would fetch submission details here
+    setTimeout(() => {
+        document.getElementById('submission-detail-content').innerHTML = `
+            <div class="alert alert-info">
+                <h6>Submission Details</h6>
+                <p>Submission ID: ${submissionId}</p>
+                <p>This would show detailed submission information including:</p>
+                <ul>
+                    <li>Individual question responses</li>
+                    <li>Coding solutions</li>
+                    <li>Test case results</li>
+                    <li>Time spent on each question</li>
+                </ul>
+            </div>
+        `;
+    }, 1000);
+}
+</script>
+
+<%- include('partials/footer') %> 

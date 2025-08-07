@@ -1,0 +1,557 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<!-- Assessment Detail Section -->
+<section class="assessment-detail-section py-4">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Assessment Info Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="assessment-info-card sticky-top" style="top: 20px;">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0" id="assessment-title">Loading...</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted">Time Remaining</small>
+                                <div class="timer-display h4 text-danger mb-0" id="timer">--:--</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Progress</small>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small class="text-muted" id="progress-text">0 of 0 questions</small>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Question Navigation</small>
+                                <div class="question-nav" id="question-nav">
+                                    <!-- Question buttons will be generated here -->
+                                </div>
+                            </div>
+                            <button class="btn btn-success w-100" id="submit-assessment" disabled>
+                                Submit Assessment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9 col-md-8">
+                <div class="assessment-content">
+                    <!-- MCQ Questions Section -->
+                    <div id="mcq-section" class="mb-4" style="display: none;">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-list-ul me-2"></i>
+                                    Multiple Choice Questions
+                                </h6>
+                            </div>
+                            <div class="card-body" id="mcq-questions">
+                                <!-- MCQ questions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coding Questions Section -->
+                    <div id="coding-section" class="mb-4" style="display: none;">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-code me-2"></i>
+                                    Coding Questions
+                                </h6>
+                            </div>
+                            <div class="card-body" id="coding-questions">
+                                <!-- Coding questions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Code Editor Modal -->
+<div class="modal fade" id="codeEditorModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="codeEditorTitle">Code Editor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" id="language-select">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="java">Java</option>
+                                <option value="cpp">C++</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Code</label>
+                            <textarea class="form-control" id="code-editor" rows="15" placeholder="Write your code here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Test Cases</label>
+                            <div id="test-cases">
+                                <!-- Test cases will be displayed here -->
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 mb-2" id="run-code">Run Code</button>
+                        <button class="btn btn-success w-100" id="save-code">Save Solution</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.assessment-info-card {
+    z-index: 1000;
+}
+
+.timer-display {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+.question-nav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.question-nav button {
+    width: 100%;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #dee2e6;
+    background: white;
+    color: #6c757d;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.question-nav button.answered {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.question-nav button.current {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.question-nav button:hover {
+    transform: scale(1.1);
+}
+
+.mcq-question {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.mcq-options {
+    margin-top: 1rem;
+}
+
+.mcq-option {
+    display: block;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mcq-option:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.mcq-option.selected {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.coding-question {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.test-case {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.test-case.passed {
+    background: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.test-case.failed {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+#code-editor {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .assessment-info-card {
+        position: static !important;
+        margin-bottom: 1rem;
+    }
+    
+    .question-nav {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .question-nav {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .mcq-option {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<script>
+let assessment = null;
+let currentQuestion = 0;
+let answers = [];
+let codingSubmissions = [];
+let timeLimit = 0;
+let timer = null;
+let startTime = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadAssessment();
+    startTimer();
+});
+
+async function loadAssessment() {
+    try {
+        const assessmentId = '<%= assessmentId %>';
+        const response = await fetch(`/api/assessments/${assessmentId}`);
+        assessment = await response.json();
+        
+        document.getElementById('assessment-title').textContent = assessment.title;
+        timeLimit = assessment.timeLimit || 60;
+        
+        // Initialize answers arrays
+        if (assessment.questions) {
+            answers = new Array(assessment.questions.length).fill(null);
+        }
+        if (assessment.codingQuestions) {
+            codingSubmissions = new Array(assessment.codingQuestions.length).fill(null);
+        }
+        
+        renderQuestions();
+        updateProgress();
+        generateQuestionNav();
+    } catch (error) {
+        console.error('Error loading assessment:', error);
+        alert('Error loading assessment. Please try again.');
+    }
+}
+
+function renderQuestions() {
+    // Render MCQ questions
+    if (assessment.questions && assessment.questions.length > 0) {
+        document.getElementById('mcq-section').style.display = 'block';
+        const mcqContainer = document.getElementById('mcq-questions');
+        mcqContainer.innerHTML = '';
+        
+        assessment.questions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mcq-question';
+            questionDiv.innerHTML = `
+                <h6>Question ${index + 1}</h6>
+                <p>${question.question}</p>
+                <div class="mcq-options">
+                    ${question.options.map((option, optIndex) => `
+                        <label class="mcq-option ${answers[index] === option ? 'selected' : ''}">
+                            <input type="radio" name="q${index}" value="${option}" 
+                                   ${answers[index] === option ? 'checked' : ''} 
+                                   onchange="selectAnswer(${index}, '${option}')">
+                            ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+            mcqContainer.appendChild(questionDiv);
+        });
+    }
+    
+    // Render coding questions
+    if (assessment.codingQuestions && assessment.codingQuestions.length > 0) {
+        document.getElementById('coding-section').style.display = 'block';
+        const codingContainer = document.getElementById('coding-questions');
+        codingContainer.innerHTML = '';
+        
+        assessment.codingQuestions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'coding-question';
+            questionDiv.innerHTML = `
+                <h6>Coding Question ${index + 1}: ${question.title}</h6>
+                <p class="text-muted">Difficulty: ${question.difficulty}</p>
+                <p>${question.description}</p>
+                <div class="test-cases-preview">
+                    <small class="text-muted">Test Cases:</small>
+                    ${question.testCases.map((testCase, tcIndex) => `
+                        <div class="test-case">
+                            <strong>Test Case ${tcIndex + 1}:</strong><br>
+                            Input: ${testCase.input}<br>
+                            Expected Output: ${testCase.output}
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="btn btn-primary mt-3" onclick="openCodeEditor(${index})">
+                    ${codingSubmissions[index] ? 'Edit Solution' : 'Write Solution'}
+                </button>
+            `;
+            codingContainer.appendChild(questionDiv);
+        });
+    }
+}
+
+function selectAnswer(questionIndex, answer) {
+    answers[questionIndex] = answer;
+    updateProgress();
+    updateQuestionNav();
+    
+    // Update the visual state of the selected option
+    const questionDiv = document.querySelectorAll('.mcq-question')[questionIndex];
+    const options = questionDiv.querySelectorAll('.mcq-option');
+    options.forEach(option => {
+        option.classList.remove('selected');
+        if (option.querySelector('input').value === answer) {
+            option.classList.add('selected');
+        }
+    });
+}
+
+function openCodeEditor(questionIndex) {
+    const question = assessment.codingQuestions[questionIndex];
+    const submission = codingSubmissions[questionIndex];
+    
+    document.getElementById('codeEditorTitle').textContent = `Coding Question ${questionIndex + 1}: ${question.title}`;
+    document.getElementById('code-editor').value = submission ? submission.code : question.starterCode || '';
+    
+    // Display test cases
+    const testCasesContainer = document.getElementById('test-cases');
+    testCasesContainer.innerHTML = '';
+    question.testCases.forEach((testCase, index) => {
+        const testCaseDiv = document.createElement('div');
+        testCaseDiv.className = 'test-case';
+        testCaseDiv.innerHTML = `
+            <strong>Test Case ${index + 1}</strong><br>
+            Input: ${testCase.input}<br>
+            Expected: ${testCase.output}
+        `;
+        testCasesContainer.appendChild(testCaseDiv);
+    });
+    
+    // Store current question index
+    document.getElementById('code-editor').dataset.questionIndex = questionIndex;
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('codeEditorModal')).show();
+}
+
+function saveCode() {
+    const questionIndex = parseInt(document.getElementById('code-editor').dataset.questionIndex);
+    const code = document.getElementById('code-editor').value;
+    const language = document.getElementById('language-select').value;
+    
+    codingSubmissions[questionIndex] = {
+        code: code,
+        language: language
+    };
+    
+    updateProgress();
+    updateQuestionNav();
+    
+    // Close modal
+    bootstrap.Modal.getInstance(document.getElementById('codeEditorModal')).hide();
+    
+    // Update button text
+    const buttons = document.querySelectorAll('.coding-question button');
+    if (buttons[questionIndex]) {
+        buttons[questionIndex].textContent = 'Edit Solution';
+    }
+}
+
+function runCode() {
+    // This would integrate with a code execution service
+    // For now, we'll just show a placeholder
+    alert('Code execution would be implemented here with a proper code execution service.');
+}
+
+function updateProgress() {
+    const totalQuestions = (assessment.questions ? assessment.questions.length : 0) + 
+                          (assessment.codingQuestions ? assessment.codingQuestions.length : 0);
+    const answeredQuestions = answers.filter(a => a !== null).length + 
+                            codingSubmissions.filter(c => c !== null).length;
+    
+    const progress = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
+    
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+    document.getElementById('progress-text').textContent = `${answeredQuestions} of ${totalQuestions} questions`;
+    
+    // Enable submit button if all questions are answered
+    document.getElementById('submit-assessment').disabled = answeredQuestions < totalQuestions;
+}
+
+function generateQuestionNav() {
+    const navContainer = document.getElementById('question-nav');
+    navContainer.innerHTML = '';
+    
+    const totalQuestions = (assessment.questions ? assessment.questions.length : 0) + 
+                          (assessment.codingQuestions ? assessment.codingQuestions.length : 0);
+    
+    for (let i = 0; i < totalQuestions; i++) {
+        const button = document.createElement('button');
+        button.textContent = i + 1;
+        button.onclick = () => scrollToQuestion(i);
+        navContainer.appendChild(button);
+    }
+    
+    updateQuestionNav();
+}
+
+function updateQuestionNav() {
+    const buttons = document.querySelectorAll('#question-nav button');
+    
+    buttons.forEach((button, index) => {
+        button.className = '';
+        const isAnswered = index < answers.length ? answers[index] !== null : 
+                          codingSubmissions[index - answers.length] !== null;
+        
+        if (isAnswered) {
+            button.classList.add('answered');
+        }
+        if (index === currentQuestion) {
+            button.classList.add('current');
+        }
+    });
+}
+
+function scrollToQuestion(index) {
+    currentQuestion = index;
+    updateQuestionNav();
+    
+    // Scroll to the appropriate question
+    const questions = document.querySelectorAll('.mcq-question, .coding-question');
+    if (questions[index]) {
+        questions[index].scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function startTimer() {
+    startTime = Date.now();
+    timer = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const remaining = timeLimit * 60 - elapsed;
+    
+    if (remaining <= 0) {
+        clearInterval(timer);
+        alert('Time is up! Submitting assessment automatically.');
+        submitAssessment();
+        return;
+    }
+    
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+    document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+async function submitAssessment() {
+    if (!confirm('Are you sure you want to submit your assessment? You cannot change your answers after submission.')) {
+        return;
+    }
+    
+    try {
+        const timeTaken = Math.floor((Date.now() - startTime) / 1000 / 60); // in minutes
+        
+        const response = await fetch(`/api/assessments/<%= assessmentId %>/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                answers: answers.map((answer, index) => ({
+                    questionIndex: index,
+                    selectedAnswer: answer
+                })),
+                codingSubmissions: codingSubmissions.map((submission, index) => ({
+                    questionIndex: index,
+                    code: submission ? submission.code : '',
+                    language: submission ? submission.language : 'javascript'
+                })),
+                timeTaken
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert(`Assessment submitted successfully!\nScore: ${result.score}/${result.maxScore}`);
+            window.location.href = '/assessment';
+        } else {
+            alert('Error submitting assessment: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting assessment:', error);
+        alert('Error submitting assessment. Please try again.');
+    }
+}
+
+// Event listeners
+document.getElementById('submit-assessment').addEventListener('click', submitAssessment);
+document.getElementById('save-code').addEventListener('click', saveCode);
+document.getElementById('run-code').addEventListener('click', runCode);
+</script>
+
+<%- include('partials/footer') %> 

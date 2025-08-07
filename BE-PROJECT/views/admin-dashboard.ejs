@@ -1,0 +1,265 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<!-- Admin Dashboard Section -->
+<section class="admin-dashboard-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="section-title text-center mb-5">
+                    <h2 class="fw-bold">Admin Dashboard</h2>
+                    <p class="text-muted">Manage assessments and monitor student performance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="total-assessments">0</h4>
+                                <small>Total Assessments</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-clipboard-list fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="total-submissions">0</h4>
+                                <small>Total Submissions</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="avg-score">0%</h4>
+                                <small>Average Score</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="active-assessments">0</h4>
+                                <small>Active Assessments</small>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-play-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-primary w-100" onclick="openCreateAssessmentModal()">
+                                    <i class="fas fa-plus me-2"></i>Create Assessment
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/admin/assessments" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-edit me-2"></i>Manage Assessments
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="/admin/reports" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-chart-bar me-2"></i>View Reports
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button class="btn btn-outline-info w-100" onclick="loadRecentSubmissions()">
+                                    <i class="fas fa-clock me-2"></i>Recent Submissions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Submissions -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Submissions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Assessment</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-submissions">
+                                    <!-- Recent submissions will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.btn {
+    border-radius: 8px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    loadRecentSubmissions();
+});
+
+async function loadDashboardStats() {
+    try {
+        const [assessmentsResponse, submissionsResponse] = await Promise.all([
+            fetch('/api/admin/assessments'),
+            fetch('/api/admin/submissions')
+        ]);
+        
+        const assessments = await assessmentsResponse.json();
+        const submissions = await submissionsResponse.json();
+        
+        // Update basic counts
+        document.getElementById('total-assessments').textContent = assessments.length;
+        document.getElementById('total-submissions').textContent = submissions.length;
+        document.getElementById('active-assessments').textContent = assessments.filter(a => a.isActive).length;
+        
+        // Calculate average score properly
+        const completedSubmissions = submissions.filter(s => s.status === 'completed');
+        let avgScore = 0;
+        
+        if (completedSubmissions.length > 0) {
+            const totalScorePercentage = completedSubmissions.reduce((sum, submission) => {
+                const percentage = submission.maxScore > 0 ? (submission.totalScore / submission.maxScore) * 100 : 0;
+                return sum + percentage;
+            }, 0);
+            avgScore = Math.round(totalScorePercentage / completedSubmissions.length);
+        }
+        
+        document.getElementById('avg-score').textContent = avgScore + '%';
+        
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // Show error message to user
+        document.getElementById('total-assessments').textContent = 'Error';
+        document.getElementById('total-submissions').textContent = 'Error';
+        document.getElementById('avg-score').textContent = 'Error';
+        document.getElementById('active-assessments').textContent = 'Error';
+    }
+}
+
+async function loadRecentSubmissions() {
+    try {
+        const response = await fetch('/api/admin/submissions');
+        const submissions = await response.json();
+        
+        const container = document.getElementById('recent-submissions');
+        container.innerHTML = '';
+        
+        if (submissions.length === 0) {
+            container.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No submissions yet</td></tr>';
+            return;
+        }
+        
+        submissions.slice(0, 10).forEach(submission => {
+            const row = document.createElement('tr');
+            const scorePercentage = submission.maxScore > 0 ? Math.round((submission.totalScore / submission.maxScore) * 100) : 0;
+            
+            row.innerHTML = `
+                <td>${submission.student ? submission.student.username : 'Unknown'}</td>
+                <td>${submission.assessment ? submission.assessment.title : 'Unknown'}</td>
+                <td>
+                    <span class="badge bg-${scorePercentage >= 80 ? 'success' : scorePercentage >= 60 ? 'warning' : 'danger'}">
+                        ${submission.totalScore}/${submission.maxScore} (${scorePercentage}%)
+                    </span>
+                </td>
+                <td><span class="badge bg-${submission.status === 'completed' ? 'success' : 'warning'}">${submission.status}</span></td>
+                <td>${new Date(submission.createdAt).toLocaleDateString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewSubmission('${submission._id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            container.appendChild(row);
+        });
+        
+    } catch (error) {
+        console.error('Error loading recent submissions:', error);
+        document.getElementById('recent-submissions').innerHTML = 
+            '<tr><td colspan="6" class="text-center text-danger">Error loading submissions</td></tr>';
+    }
+}
+
+function openCreateAssessmentModal() {
+    window.location.href = '/admin/assessments';
+}
+
+function viewSubmission(submissionId) {
+    alert('View submission details for: ' + submissionId);
+}
+</script>
+
+<%- include('partials/footer') %> 
