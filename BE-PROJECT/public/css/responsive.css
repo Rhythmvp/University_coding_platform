@@ -1,0 +1,279 @@
+/* ===================================
+   RESPONSIVE DESIGN SYSTEM
+   Mobile-First Approach
+   =================================== */
+
+/* Reset and Base Responsive Styles */
+* {
+    box-sizing: border-box;
+}
+
+/* Mobile First - Base styles for all screen sizes */
+:root {
+    /* Responsive Typography Scale */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    
+    /* Responsive Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    
+    /* Container widths */
+    --container-sm: 100%;
+    --container-md: 100%;
+    --container-lg: 100%;
+    --container-xl: 100%;
+}
+
+/* Mobile First - Base styles */
+body {
+    overflow-x: hidden;
+}
+
+.container {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive Grid System */
+.grid {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.grid-2 {
+    grid-template-columns: 1fr;
+}
+
+.grid-3 {
+    grid-template-columns: 1fr;
+}
+
+.grid-4 {
+    grid-template-columns: 1fr;
+}
+
+/* Responsive Flexbox */
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.items-center {
+    align-items: center;
+}
+
+/* Responsive Typography */
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-base); }
+
+/* Responsive Images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.responsive-img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Responsive Navigation */
+.mobile-menu-toggle {
+    display: block;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.navbar-nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+}
+
+.navbar-nav.active {
+    display: flex;
+}
+
+/* Responsive Cards */
+.card {
+    width: 100%;
+    margin-bottom: var(--space-md);
+}
+
+/* Responsive Tables */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive Forms */
+.form-group {
+    margin-bottom: var(--space-md);
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--space-sm);
+    font-size: var(--font-size-base);
+}
+
+/* Responsive Buttons */
+.btn {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-size-base);
+    min-width: 120px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Responsive Spacing */
+.section {
+    padding: var(--space-xl) 0;
+}
+
+.section-sm {
+    padding: var(--space-lg) 0;
+}
+
+.section-lg {
+    padding: var(--space-2xl) 0;
+}
+
+/* Responsive Utilities */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.hidden { display: none; }
+.visible { display: block; }
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    h1 { font-size: var(--font-size-4xl); }
+    h2 { font-size: var(--font-size-3xl); }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+    
+    .mobile-menu-toggle {
+        display: none;
+    }
+    
+    .navbar-nav {
+        display: flex;
+        flex-direction: row;
+        width: auto;
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .flex-row {
+        flex-direction: row;
+    }
+    
+    .section {
+        padding: var(--space-2xl) 0;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+    
+    .grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .section {
+        padding: var(--space-3xl) 0;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+}
+
+/* Extra extra large devices (1400px and up) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1320px;
+    }
+}
+
+To make the entire site fully responsive, I will need to:
+- Review other page-specific CSS files (e.g. index.css, course.css, etc.) for responsiveness
+- Add or enhance media queries for layout adjustments on smaller screens
+- Ensure images, grids, and text scale properly on mobile and tablet devices
+- Possibly update EJS templates to use responsive-friendly HTML structure if needed
+
+Next, I will read the index.css file to check for existing responsive styles and identify gaps.
+
+<read_file>
+<path>BE-PROJECT/public/css/index.css</path>
+</read_file>
